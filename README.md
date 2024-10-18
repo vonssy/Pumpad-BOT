@@ -6,11 +6,8 @@ Register Here : [Pumpad](https://t.me/Pumpad_Bot/Lucky?startapp=5061494504951691
 ## Fitur
 
   - Auto Get Account Information
-  - Auto Claim Daily Login
-  - Auto Claim Refferal
-  - Auto Start and Claim Farming
-  - Auto Complete General Tasks
-  - Auto Complete Daily Tasks [y/n]
+  - Auto Draw Lottery
+  - Auto Complete Missions
   - Multi Account
 
 ## Prasyarat
@@ -46,6 +43,10 @@ Pastikan Anda telah menginstal Python3.9 dan PIP.
 ```bash
 python bot.py #or python3 bot.py
 ```
+
+## Note
+
+- If Error because blocked by cloudflare, try run again, again, and again.
 
 ## Penutup
 
