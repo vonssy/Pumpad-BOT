@@ -57,7 +57,6 @@ class Pumpad:
         })
 
         response = self.scraper.get(url, headers=self.headers)
-        response.raise_for_status()
         result = response.json()
         if response.status_code == 200:
             return result
@@ -71,7 +70,6 @@ class Pumpad:
         })
 
         response = self.scraper.get(url, headers=self.headers)
-        response.raise_for_status()
         result = response.json()
         if response.status_code == 200:
             return result
@@ -85,7 +83,6 @@ class Pumpad:
         })
 
         response = self.scraper.post(url, headers=self.headers)
-        response.raise_for_status()
         result = response.json()
         if response.status_code == 200:
             return result
@@ -99,7 +96,6 @@ class Pumpad:
         })
 
         response = self.scraper.get(url, headers=self.headers)
-        response.raise_for_status()
         result = response.json()
         if response.status_code == 200:
             return result
@@ -114,7 +110,6 @@ class Pumpad:
         })
 
         response = self.scraper.post(url, headers=self.headers, json=data)
-        response.raise_for_status()
         result = response.json()
         if response.status_code == 200:
             return result
@@ -130,35 +125,6 @@ class Pumpad:
                     f"{Fore.WHITE + Style.BRIGHT} {user['user_name']} {Style.RESET_ALL}"
                     f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
                 )
-
-            lottery = self.get_lottery(query)
-            if lottery is not None:
-                count = lottery['draw_count']
-                if count != 0:
-                    while count > 0:
-                        draw = self.post_lottery(query)
-                        if draw is not None:
-                            if 'reward' in draw:
-                                self.log(
-                                    f"{Fore.MAGENTA + Style.BRIGHT}[ Draw{Style.RESET_ALL}"
-                                    f"{Fore.GREEN + Style.BRIGHT} Is Success {Style.RESET_ALL}"
-                                    f"{Fore.MAGENTA + Style.BRIGHT}] [ Reward{Style.RESET_ALL}"
-                                    f"{Fore.WHITE + Style.BRIGHT} {draw['reward']['name']} {Style.RESET_ALL}"
-                                    f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
-                                )
-                            else:
-                                self.log(
-                                    f"{Fore.MAGENTA + Style.BRIGHT}[ Draw{Style.RESET_ALL}"
-                                    f"{Fore.RED + Style.BRIGHT} Isn't Success {Style.RESET_ALL}"
-                                    f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
-                                )
-                        else:
-                            self.log(f"{Fore.RED + Style.BRIGHT}[ Data Post Lottery Is None ]{Style.RESET_ALL}")
-                        count -= 1
-                else:
-                    self.log(f"{Fore.YELLOW + Style.BRIGHT}[ You Don't Have Enough Draw Count ]{Style.RESET_ALL}")
-            else:
-                self.log(f"{Fore.RED + Style.BRIGHT}[ Data Get Lottery Is None ]{Style.RESET_ALL}")
 
             missions = self.get_missions(query)
             if missions['mission_list'] is not None and 'mission_list' in missions:
@@ -205,10 +171,56 @@ class Pumpad:
             else:
                 self.log(f"{Fore.GREEN + Style.BRIGHT}[ Mission Clear ]{Style.RESET_ALL}")
 
+            draw = self.post_lottery(query)
+            if draw is not None:
+                if 'reward' in draw:
+                    self.log(
+                        f"{Fore.MAGENTA + Style.BRIGHT}[ Draw{Style.RESET_ALL}"
+                        f"{Fore.GREEN + Style.BRIGHT} Is Success {Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT}] [ Reward{Style.RESET_ALL}"
+                        f"{Fore.WHITE + Style.BRIGHT} {draw['reward']['name']} {Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+                    )
+                else:
+                    self.log(
+                        f"{Fore.MAGENTA + Style.BRIGHT}[ Draw{Style.RESET_ALL}"
+                        f"{Fore.RED + Style.BRIGHT} Isn't Success {Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+                    )
+
+            lottery = self.get_lottery(query)
+            if lottery is not None:
+                count = lottery['draw_count']
+                if count != 0:
+                    while count > 0:
+                        draw = self.post_lottery(query)
+                        if draw is not None:
+                            if 'reward' in draw:
+                                self.log(
+                                    f"{Fore.MAGENTA + Style.BRIGHT}[ Draw{Style.RESET_ALL}"
+                                    f"{Fore.GREEN + Style.BRIGHT} Is Success {Style.RESET_ALL}"
+                                    f"{Fore.MAGENTA + Style.BRIGHT}] [ Reward{Style.RESET_ALL}"
+                                    f"{Fore.WHITE + Style.BRIGHT} {draw['reward']['name']} {Style.RESET_ALL}"
+                                    f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+                                )
+                            else:
+                                self.log(
+                                    f"{Fore.MAGENTA + Style.BRIGHT}[ Draw{Style.RESET_ALL}"
+                                    f"{Fore.RED + Style.BRIGHT} Isn't Success {Style.RESET_ALL}"
+                                    f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+                                )
+                        else:
+                            self.log(f"{Fore.RED + Style.BRIGHT}[ Data Post Lottery Is None ]{Style.RESET_ALL}")
+                        count -= 1
+                else:
+                    self.log(f"{Fore.YELLOW + Style.BRIGHT}[ You Don't Have Enough Draw Count ]{Style.RESET_ALL}")
+            else:
+                self.log(f"{Fore.RED + Style.BRIGHT}[ Data Get Lottery Is None ]{Style.RESET_ALL}")
+
         except RequestException as e:
             self.log(
                 f"{Fore.RED + Style.BRIGHT}[ Blocked By Cloudflare ]{Style.RESET_ALL}"
-                f"{Fore.WHITE + Style.BRIGHT}[ Restart First ]{Style.RESET_ALL}"
+                f"{Fore.WHITE + Style.BRIGHT}[ Try Run Again ]{Style.RESET_ALL}"
             )
 
     def main(self):
