@@ -6,6 +6,8 @@ Register Here : [Pumpad](https://t.me/Pumpad_Bot/Lucky?startapp=5061494504951691
 ## Fitur
 
   - Auto Get Account Information
+  - Auto Check-In Raffle
+  - Auto Draw Raffle
   - Auto Draw Lottery
   - Auto Complete Missions
   - Multi Account
