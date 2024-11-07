@@ -4,7 +4,6 @@ from colorama import *
 from datetime import datetime
 import time
 import pytz
-from requests.exceptions import RequestException
 
 wib = pytz.timezone('Asia/Jakarta')
 
@@ -57,9 +56,8 @@ class Pumpad:
         })
 
         response = self.scraper.get(url, headers=self.headers)
-        result = response.json()
         if response.status_code == 200:
-            return result
+            return response.json()
         else:
             return None
         
@@ -70,9 +68,8 @@ class Pumpad:
         })
 
         response = self.scraper.get(url, headers=self.headers)
-        result = response.json()
         if response.status_code == 200:
-            return result
+            return response.json()
         else:
             return None
     
@@ -83,9 +80,56 @@ class Pumpad:
         })
 
         response = self.scraper.post(url, headers=self.headers)
-        result = response.json()
         if response.status_code == 200:
-            return result
+            return response.json()
+        else:
+            return None
+
+    def get_checkin(self, query: str):
+        url = 'https://tg.pumpad.io/referral/api/v1/tg/raffle/checkin'
+        self.headers.update({
+            'Authorization': f'tma {query}',
+        })
+
+        response = self.scraper.get(url, headers=self.headers)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+
+    def post_checkin(self, query: str):
+        url = 'https://tg.pumpad.io/referral/api/v1/tg/raffle/checkin'
+        self.headers.update({
+            'Authorization': f'tma {query}',
+        })
+
+        response = self.scraper.post(url, headers=self.headers)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+        
+    def get_ticket(self, query: str):
+        url = 'https://tg.pumpad.io/referral/api/v1/tg/raffle/tickets'
+        self.headers.update({
+            'Authorization': f'tma {query}',
+        })
+
+        response = self.scraper.get(url, headers=self.headers)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return None
+
+    def post_raffle(self, query: str):
+        url = 'https://tg.pumpad.io/referral/api/v1/tg/raffle/bets'
+        self.headers.update({
+            'Authorization': f'tma {query}',
+        })
+
+        response = self.scraper.post(url, headers=self.headers)
+        if response.status_code == 200:
+            return response.json()
         else:
             return None
     
@@ -96,9 +140,8 @@ class Pumpad:
         })
 
         response = self.scraper.get(url, headers=self.headers)
-        result = response.json()
         if response.status_code == 200:
-            return result
+            return response.json()
         else:
             return None
     
@@ -110,21 +153,99 @@ class Pumpad:
         })
 
         response = self.scraper.post(url, headers=self.headers, json=data)
-        result = response.json()
         if response.status_code == 200:
-            return result
+            return response.json()
         else:
             return None
     
     def process_query(self, query: str):
-        try:
-            user = self.user_information(query)
-            if user:
+        user = self.user_information(query)
+        if not user:
+            self.log(
+                f"{Fore.MAGENTA + Style.BRIGHT}[ Account{Style.RESET_ALL}"
+                f"{Fore.RED + Style.BRIGHT} Query ID Isn't Valid {Style.RESET_ALL}"
+                f"{Fore.MAGENTA + Style.BRIGHT}or{Style.RESET_ALL}"
+                f"{Fore.YELLOW + Style.BRIGHT} Blocked By Cloudflare {Style.RESET_ALL}"
+                f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+                f"{Fore.WHITE + Style.BRIGHT} [ Restart Again ] {Style.RESET_ALL}"
+            )
+            return
+        
+        if user:
+            self.log(
+                f"{Fore.MAGENTA + Style.BRIGHT}[ Account{Style.RESET_ALL}"
+                f"{Fore.WHITE + Style.BRIGHT} {user['user_name']} {Style.RESET_ALL}"
+                f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+            )
+            time.sleep(1)
+
+            check_in = self.get_checkin(query)
+            if check_in and not check_in['is_check_in']:
+                claim = self.post_checkin(query)
+                if claim and claim['raffle_count']:
+                    self.log(
+                        f"{Fore.MAGENTA + Style.BRIGHT}[ Check-In{Style.RESET_ALL}"
+                        f"{Fore.WHITE + Style.BRIGHT} Day {check_in['consecutive_days']+1} {Style.RESET_ALL}"
+                        f"{Fore.GREEN + Style.BRIGHT}Is Claimed{Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT} ] [ Reward{Style.RESET_ALL}"
+                        f"{Fore.WHITE + Style.BRIGHT} {claim['raffle_count']} Raffle Ticket {Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+                    )
+                else:
+                    self.log(
+                        f"{Fore.MAGENTA + Style.BRIGHT}[ Check-In{Style.RESET_ALL}"
+                        f"{Fore.WHITE + Style.BRIGHT} Day {check_in['consecutive_days']+1} {Style.RESET_ALL}"
+                        f"{Fore.RED + Style.BRIGHT}Isn't Claimed{Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT} ]{Style.RESET_ALL}"
+                    )
+            else:
                 self.log(
-                    f"{Fore.MAGENTA + Style.BRIGHT}[ Account{Style.RESET_ALL}"
-                    f"{Fore.WHITE + Style.BRIGHT} {user['user_name']} {Style.RESET_ALL}"
+                    f"{Fore.MAGENTA + Style.BRIGHT}[ Check-In{Style.RESET_ALL}"
+                    f"{Fore.WHITE + Style.BRIGHT} Day {check_in['consecutive_days']} {Style.RESET_ALL}"
+                    f"{Fore.YELLOW + Style.BRIGHT}Is Already Claimed{Style.RESET_ALL}"
+                    f"{Fore.MAGENTA + Style.BRIGHT} ]{Style.RESET_ALL}"
+                )
+            time.sleep(1)
+
+            ticekt = self.get_ticket(query)
+            if ticekt and ticekt['number_of_tickets'] > 0:
+                count = ticekt['number_of_tickets']
+
+                while count > 0:
+                    raffle = self.post_raffle(query)
+                    if raffle and raffle['number']:
+                        count = raffle['remain_count']
+
+                        self.log(
+                            f"{Fore.MAGENTA + Style.BRIGHT}[ Raffle{Style.RESET_ALL}"
+                            f"{Fore.GREEN + Style.BRIGHT} Is Success {Style.RESET_ALL}"
+                            f"{Fore.MAGENTA + Style.BRIGHT}] [ Number{Style.RESET_ALL}"
+                            f"{Fore.WHITE + Style.BRIGHT} {raffle['number']} {Style.RESET_ALL}"
+                            f"{Fore.MAGENTA + Style.BRIGHT}] [ Ticket{Style.RESET_ALL}"
+                            f"{Fore.WHITE + Style.BRIGHT} {count} Left {Style.RESET_ALL}"
+                            f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+                        )
+                    else:
+                        self.log(
+                            f"{Fore.MAGENTA + Style.BRIGHT}[ Raffle{Style.RESET_ALL}"
+                            f"{Fore.RED + Style.BRIGHT} Isn't Success {Style.RESET_ALL}"
+                            f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+                        )
+                        break
+
+                if count == 0:
+                    self.log(
+                        f"{Fore.MAGENTA + Style.BRIGHT}[ Raffle{Style.RESET_ALL}"
+                        f"{Fore.YELLOW + Style.BRIGHT} No Ticket Remaining {Style.RESET_ALL}"
+                        f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
+                    )
+            else:
+                self.log(
+                    f"{Fore.MAGENTA + Style.BRIGHT}[ Raffle{Style.RESET_ALL}"
+                    f"{Fore.YELLOW + Style.BRIGHT} No Ticket Remaining {Style.RESET_ALL}"
                     f"{Fore.MAGENTA + Style.BRIGHT}]{Style.RESET_ALL}"
                 )
+
 
             missions = self.get_missions(query)
             if missions['mission_list'] is not None and 'mission_list' in missions:
@@ -170,6 +291,7 @@ class Pumpad:
                             )
             else:
                 self.log(f"{Fore.GREEN + Style.BRIGHT}[ Mission Clear ]{Style.RESET_ALL}")
+            time.sleep(1)
 
             draw = self.post_lottery(query)
             if draw is not None:
@@ -217,12 +339,6 @@ class Pumpad:
             else:
                 self.log(f"{Fore.RED + Style.BRIGHT}[ Data Get Lottery Is None ]{Style.RESET_ALL}")
 
-        except RequestException as e:
-            self.log(
-                f"{Fore.RED + Style.BRIGHT}[ Blocked By Cloudflare ]{Style.RESET_ALL}"
-                f"{Fore.WHITE + Style.BRIGHT}[ Try Run Again ]{Style.RESET_ALL}"
-            )
-
     def main(self):
         try:
             with open('query.txt', 'r') as file:
@@ -235,13 +351,13 @@ class Pumpad:
                     f"{Fore.GREEN + Style.BRIGHT}Account's Total: {Style.RESET_ALL}"
                     f"{Fore.WHITE + Style.BRIGHT}{len(queries)}{Style.RESET_ALL}"
                 )
-                self.log(f"{Fore.CYAN + Style.BRIGHT}-----------------------------------------------------------------------{Style.RESET_ALL}")
+                self.log(f"{Fore.CYAN + Style.BRIGHT}-{Style.RESET_ALL}"*75)
 
                 for query in queries:
                     query = query.strip()
                     if query:
                         self.process_query(query)
-                        self.log(f"{Fore.CYAN + Style.BRIGHT}-----------------------------------------------------------------------{Style.RESET_ALL}")
+                        self.log(f"{Fore.CYAN + Style.BRIGHT}-{Style.RESET_ALL}"*75)
 
                 seconds = 1800
                 while seconds > 0:
